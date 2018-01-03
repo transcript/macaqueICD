@@ -1,21 +1,21 @@
 # macaqueICD
 Python, R, and bash scripts used for analysis of rhesus macaque gut microbiomes for ICD.  Except when described otherwise, tools used are all components of the SAMSA2 pipeline [https://github.com/transcript/samsa2](https://github.com/transcript/samsa2) .
 
-###Base pipeline and analysis
+### Base pipeline and analysis
 
 *Script used: bash\_scripts/macaque\_master\_script.bash*
 
 **Explanation:** This is the main pipeline script of SAMSA2, set up to run on a cluster for the macaque metatranscriptome files.  The reference databases used are NCBI's RefSeq Bacterial non-redundant database (version 102, released 22 December 2015), and TheSEED Subsystems database (retrieved 18 January 2017).
 
-###Host read analysis
+### Host read analysis
 
 *Script used: bash\_scripts/macaque\_host\_pipeline\_script.bash*
 
 **Explanation:** Macaque host reads were screened out of metatranscriptome later than analysis of bacterial sequences, and thus a simplified pipeline script was created for analysis.  The reference database used is NCBI's RefSeq macaque proteins database (retrieved 4 October 2017).
 
-###Figure generation R scripts
+### Figure generation R scripts
 
-#####Shannon and Simpson diversity graphs
+##### Shannon and Simpson diversity graphs
 
 *Script used: R\_scripts/diversity\_stats.R*
 
@@ -23,7 +23,7 @@ Python, R, and bash scripts used for analysis of rhesus macaque gut microbiomes 
 
 Diversity was calculated based on the genus counts for annotations against the RefSeq Bacteria database.  The vegan package is used for calculating Shannon and Simpson diversity measures.
 
-#####PCA plot
+##### PCA plot
 
 *Script used: R\_scripts/make\_DESeq\_PCA.R*
 
@@ -31,7 +31,7 @@ Diversity was calculated based on the genus counts for annotations against the R
     
 The PCA plot included in the paper was calculated using genus counts for annotations against the RefSeq Bacteria database, comparing the ICD samples to control samples.  
 
-#####Heatmaps
+##### Heatmaps
 
 *Script used: R\_scripts/make\_DESeq\_heatmap.R*    
 *Script used for host heatmap: R\_scripts/macaque\_host\_heatmap.R*
@@ -40,7 +40,7 @@ The PCA plot included in the paper was calculated using genus counts for annotat
 
 The heatmap in Figure 1 in the paper was caluclated using genus counts for annotations against the RefSeq Bacteria database, comparing each of the samples against others.  Numbers 1-12 indicate the ICD samples, while 13-24 indicate healthy controls.  For Figure 9, the heatmap of immune functions found in host annotations draws on functional annotations against NCBI's list of macaque proteins.  
 
-#####Stacked bar graphs
+##### Stacked bar graphs
 
 *Script used: R\_scripts/make\_combined\_graphs\_top10.R
 
@@ -48,7 +48,7 @@ The heatmap in Figure 1 in the paper was caluclated using genus counts for annot
 
 For Figure 2, the graph was created using genus counts for annotations against the RefSeq Bacteria database.  Note that the optional "Other" setting in the script was kept, to preserve Other counts in the figure.
 
-#####Subsystems variable-width bar graphs
+##### Subsystems variable-width bar graphs
 
 *Script used: R\_scripts/Subsystems\_DESeq\_graphs.R*
 
@@ -58,7 +58,7 @@ Using scripts included in the SAMSA2 pipeline, the SEED Subsystems annotations w
 
 Figure 4 in the paper used the same script listed above, but no filtering was applied to Subsystems annotated reads, so all Subsystems annotated were used to create the barplot.
 
-#####Boxplots
+##### Boxplots
 
 *Script used: R\_scripts/macaque\_pathogen\_boxplots.R*    
 *Script used: R\_scripts/mucin\_degraders\_boxplots.R*    
