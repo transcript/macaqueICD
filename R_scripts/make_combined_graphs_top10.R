@@ -1,6 +1,6 @@
-# make_combined_graphs.R
+# make_combined_graphs_top10.R
 # Created 6/28/16
-# Arguments that need to be specified: working directory (ARGV1), save filename (ARGV2)
+# Run with --help flag for help.
 
 args <- commandArgs(TRUE)
 

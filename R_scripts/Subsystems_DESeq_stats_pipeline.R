@@ -1,41 +1,52 @@
-# Subsystems_DESeq_graphs.R
-# Created 11/06/2017, by Sam Westreich
-# Last updated 12/08/2017
+# Subsystems_DESeq_stats_pipeline.R
+# Created 3/06/2017, by Sam Westreich
+# Last updated 6/16/2017
 # Run with --help flag for help.
 
-args <- commandArgs(TRUE)
+suppressPackageStartupMessages({
+  library(optparse)
+})
 
-library(optparse)
 option_list = list(
-  make_option(c("-o", "--out"), type="character", default="combined_graph.pdf", 
+  make_option(c("-I", "--input"), type="character", default="./",
+              help="Input directory", metavar="character"),
+  make_option(c("-O", "--out"), type="character", default="DESeq_subsystems_results.tsv", 
               help="output file name [default= %default]", metavar="character"),
+  make_option(c("-R", "--raw_counts"), type="character", default=NULL,
+              help="raw (total) read counts for this starting file", metavar="character"),
+  make_option(c("-N", "--normalized_counts"), type="character", default=NULL,
+              help="Name for normalized counts table", metavar="character"),
   make_option(c("-L", "--level"), type="integer", default=1,
-              help="level of Subsystems hierarchy for DESeq stats [default=%default]", metavar="character"),
-  make_option(c("-d", "--directory"), type="character", default=NULL,
-              help="working directory location", metavar="character")
-); 
+              help="level of Subsystems hierarchy for DESeq stats [default=%default]", metavar="character")
+)
 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
-print("USAGE: $ run_DESeq_graphs.R -I working_directory/ -O save.filename -L level (1,2,3,4)")
+
+print("USAGE: $ run_DESeq_stats.R -I working_directory/ -O save.filename -L level (1,2,3,4)")
+print(paste("Calculating DESeq results for hierarchy level ", opt$level, "\n"))
+print(paste("Saving results as ", opt$out, "\n"))
+save_filename <- opt$out
 
 # check for necessary specs
-if (is.null(opt$directory)) {
-  print ("WARNING: No working directory specified with '-d' flag.")
+if (is.null(opt$input)) {
+  print ("WARNING: No working input directory specified with '-I' flag.")
   stop()
+} else {  cat ("Working directory is ", opt$input, "\n")
+  wd_location <- opt$input  
+  setwd(wd_location)  }
+
+if (is.null(opt$raw_counts)) {
+  print ("WARNING: no raw counts file specified, skipping this info for DESeq analysis.")
 } else {
-  cat ("Working directory is ", opt$directory, "\n")
-  wd_location <- opt$directory
+  counts_file <- opt$raw_counts
 }
 
-if (is.null(opt$out)) {
-  print ("WARNING: No save name for plot specified; defaulting to 'combined_graph.pdf'.") }
-
-library("DESeq2")
-library("data.table")
-
-setwd(wd_location) # OR
-#setwd("~/Desktop/Projects/Lab Stuff/Macaque project/DIAMOND_results/Subsystems_results/reduced_files/renamed_files/")
+# import other necessary packages
+suppressPackageStartupMessages({
+  library(DESeq2)
+  library("data.table")
+})
 
 # get list of files
 control_files <- list.files(
@@ -100,8 +111,6 @@ exp_table <- exp_table[,-ncol(exp_table)]
 
 # At this point, the whole table is read in.  Next step (for statistical comparison) is to 
 # get just the level we want to compare.
-
-# for Level 1 comparisons:
 if (opt$level == 1) {
   l1_control_table <- data.table(control_table[, !names(control_table) %in% c("Level2", "Level3", "Level4")])
   l1_exp_table <- data.table(exp_table[, !names(exp_table) %in% c("Level2", "Level3", "Level4")])
@@ -145,25 +154,25 @@ rownames(l1_table) <- l1_table$Level1
 l1_names <- l1_table$Level1
 l1_table$Level1 <- NULL
 l1_table[is.na(l1_table)] <- 0
-l1_data_table = data.frame(l1_table)
-colnames(l1_data_table)=colnames(l1_table)
-rownames(l1_data_table)=rownames(l1_table)
 
 # now the DESeq stuff
 completeCondition <- data.frame(condition=factor(c(rep("control", length(control_files)), 
-  rep("ICD", length(exp_files)))))
-dds <- DESeqDataSetFromMatrix(l1_data_table, completeCondition, ~ condition)
+  rep("experimental", length(exp_files)))))
+dds <- DESeqDataSetFromMatrix(l1_table, completeCondition, ~ condition)
 dds <- DESeq(dds)
 baseMeanPerLvl <- sapply( levels(dds$condition), function(lvl) rowMeans( 
   counts(dds,normalized=TRUE)[,dds$condition == lvl] ) )
 
 # for normalized counts
-normalized_counts <- as.data.frame( t( t(counts(dds)) / sizeFactors(dds)))
-normalized_counts$Rownames <- row.names(l1_table)
-write.table(normalized_counts, "macaque_subsys_l4_normalized_table.tsv", quote=F, row.names=T, col.names=T, sep="\t")
+if (is.null(opt$normalized_counts) == F) {
+  normalized_counts_save_name = opt$normalized_counts
+  normalized_counts <- as.data.frame( t( t(counts(dds)) / sizeFactors(dds)))
+  normalized_counts$Rownames <- row.names(l1_table)
+  write.table(normalized_counts, normalized_counts_save_name, quote=F, sep="\t")
+}
 
 # continuing with normal results
-res <- results(dds, contrast = c("condition", "ICD", "control"))
+res <- results(dds, contrast = c("condition", "experimental", "control"))
 l1_results <- data.frame(res)
 rownames(l1_results) <- rownames(l1_table)
 rownames(baseMeanPerLvl) <- rownames(l1_table)
@@ -171,46 +180,10 @@ l1_results <- merge(l1_results, baseMeanPerLvl, by="row.names")
 l1_results <- l1_results[,c(1,2,8,9,3,4,5,6,7)]
 colnames(l1_results)[c(3,4)] <- c("controlMean", "experimentalMean")
 l1_results <- l1_results[order(-l1_results$baseMean),]
-l1_results[,c("lfcSE", "stat", "pvalue")] = NULL
+l1_results[,c("lfcSE", "stat", "pvalue")] <- NULL
 
-write.table(l1_results, file = "Macaque_Subsys_l2_DESeq_8Nov.tab", 
+# Saving
+cat("Saving file as ", save_filename, " now.\n")
+write.table(l1_results, save_filename, 
   append = FALSE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
 
-# The following is to make a graph of these categories...
-library(ggplot2)
-graph_table <- l1_results[,c(1,5,6)]
-graph_table$Row.names <- as.factor(graph_table$Row.names)
-graph_table$Row.names <- factor(graph_table$Row.names, levels = graph_table$Row.names[order(graph_table$log2FoldChange)])
-colnames(graph_table) <- c("Category", "log2FoldChange", "padj")
-graph_table$color <- ifelse(graph_table$log2FoldChange>0, "green", "red")
-
-# adjusting bar widths
-widths = log(l1_results$baseMean)
-graph_table$widths = widths
-graph_table = graph_table[order(graph_table$log2FoldChange),]
-graph_table$order = c(1:nrow(graph_table))
-graph_table$cumwidths = cumsum(graph_table$widths/max(widths))
-
-# the graph!
-p <- ggplot(data=graph_table, aes(order, log2FoldChange, fill=color)) + 
-  geom_bar(width=graph_table$widths/max(widths), stat="identity", position="identity") + 
-  theme(legend.position = "none", axis.text.x = element_text(angle=90, vjust=1, hjust=1)) + 
-  scale_x_continuous(breaks=graph_table$order, labels=graph_table$Category) +
-  scale_fill_manual("legend", values=c("green"="green", "red"="red"))
-
-# adding stars
-graph_table <- graph_table[order(graph_table$log2FoldChange),]
-label.df <- data.frame(Category=graph_table$Category, 
-                       log2FoldChange = graph_table$log2FoldChange,
-                       padj = graph_table$padj,
-                       color=graph_table$color,
-                       widths=graph_table$widths,
-                       order=graph_table$order,
-                       cumwidths=graph_table$cumwidths)
-label.df <- subset(label.df, padj < 0.01)
-label.df$padj = NULL
-
-cat ("Saving Subsystems barplot as ", opt$out, " now.\n")
-pdf(file = opt$out, width=9, height=12)
-p + geom_text(data=label.df, label="*")
-dev.off()
