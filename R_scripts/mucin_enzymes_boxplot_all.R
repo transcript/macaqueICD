@@ -41,7 +41,8 @@ fd.m$color <- rep(c("red", "green"), times=84)
 pp = ggplot(fd.m, aes(group, value)) + geom_boxplot() + scale_y_log10() +
   geom_jitter(aes(color=color), position=position_jitter(w=0.2,h=0.1)) +
   theme(legend.position="none", axis.text.x=element_text(angle=90, hjust=1),
-        axis.title = element_blank())
+        axis.title.x = element_blank()) +
+  ylab("Normalized transcript abundance (log scale)")
 pp
 
 df1 <- data.frame(a = c(1, 1,2, 2), b = c(158500, 200500, 200500, 158500))

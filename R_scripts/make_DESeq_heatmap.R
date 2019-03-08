@@ -112,7 +112,7 @@ dists <- dist(t(assay(transformed_data)))
 
 # Create heatmap of distances
 sampleDistMatrix <- as.matrix( dists )
-rownames(sampleDistMatrix) <- c(control_names_trimmed, exp_names_trimmed)
+rownames(sampleDistMatrix) <- transformed_data$condition
 colnames(sampleDistMatrix) <- transformed_data$condition
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
 pheatmap(sampleDistMatrix,

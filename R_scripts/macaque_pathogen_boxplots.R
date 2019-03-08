@@ -27,10 +27,13 @@ fd = as.data.frame(t(df))
 fd$group <- row.names(fd)
 fd.m <- melt(fd, id.vars="group")
 fd.m$color <- rep(c("red", "green"), times=60)
-pp = ggplot(fd.m, aes(group, value)) + geom_boxplot() + scale_y_log10() +
+pp = ggplot(fd.m, aes(group, value)) + 
+  ylab("Normalized transcript abundance (log scale)") +
+  geom_boxplot() + 
+  scale_y_log10() +
   geom_jitter(aes(color=color), position=position_jitter(w=0.2,h=0.1)) +
   theme(legend.position="none", axis.text.x=element_text(angle=90, hjust=1),
-        axis.title = element_blank())
+        axis.title.x = element_blank())
   
 df1 <- data.frame(a = c(1, 1,2, 2), b = c(60000, 71000, 71000, 60000))
 df2 <- data.frame(a = c(3, 3,4, 4), b = c(64000, 76000, 76000, 64000))

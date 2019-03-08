@@ -1,6 +1,6 @@
-# make_combined_graphs_top10.R
+# make_combined_graphs.R
 # Created 6/28/16
-# Run with --help flag for help.
+# Arguments that need to be specified: working directory (ARGV1), save filename (ARGV2)
 
 args <- commandArgs(TRUE)
 
@@ -41,7 +41,7 @@ suppressPackageStartupMessages({
 
 setwd(wd_location)
 # OR
-#setwd("~/Desktop/Projects/Lab Stuff/Macaque project/DIAMOND_results/org_results/genus_results/")
+setwd("~/Desktop/Projects/Lab Stuff/Macaque project/DIAMOND_results/org_results/genus_results/")
 
 # color palette
 CbPalette <- c("#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", 
@@ -198,7 +198,7 @@ org_relative_ggplot <- ggplot(full_table_top30, aes(x = variable, y = value, fil
         axis.text.x = element_text(angle=90, vjust=1)) +
   guides(fill = guide_legend(ncol=10)) +
 #  ggtitle(opt$gtitle) +
-  xlab("Sample ID") + ylab("Relative activity of total sample")
+  xlab("Sample ID") + ylab("Relative gene expression")
 
 org_absolute_ggplot <- ggplot(full_table_top30, aes(x = variable, y = value, fill = Genera)) +
   geom_bar(stat = "identity") +

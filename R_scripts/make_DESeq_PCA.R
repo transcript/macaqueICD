@@ -6,9 +6,9 @@ args <- commandArgs(TRUE)
 
 suppressPackageStartupMessages({
   library(DESeq2) })
-  library("pheatmap", quietly = TRUE)
-  library("RColorBrewer", quietly = TRUE)
-  library("ggplot2", quietly = TRUE)
+library("pheatmap", quietly = TRUE)
+library("RColorBrewer", quietly = TRUE)
+library("ggplot2", quietly = TRUE)
 
 # check for necessary specs
 if (!is.na(args[1])) {
